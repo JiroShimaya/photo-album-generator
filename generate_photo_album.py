@@ -3,12 +3,13 @@ import re
 
 import random
 import argparse
+from typing import List, Union
 from pptx import Presentation
 from pptx.util import Inches
 from PIL import Image
 
 
-def generate_photo_album(input_dir, rows=2, columns=3, num_pages=5, crop_aspect_ratio=1.0, output_file="photo_album.pptx"):
+def generate_photo_album(input_dir: str, rows: int = 2, columns: int = 3, num_pages: int = 5, crop_aspect_ratio: float = 1.0, output_file: str = "photo_album.pptx") -> None:
     # パワーポイントのプレゼンテーションを作成
     prs = Presentation()
 
@@ -48,13 +49,13 @@ def generate_photo_album(input_dir, rows=2, columns=3, num_pages=5, crop_aspect_
     print("写真アルバムが生成されました。")
 
 
-def sort_photos_by_datetime(file_paths):
+def sort_photos_by_datetime(file_paths: List[str]) -> List[str]:
     # 撮影日時の昇順でソート
     sorted_file_paths = sorted(file_paths, key=get_datetime_taken)
 
     return sorted_file_paths
 
-def get_datetime_taken(file_path):
+def get_datetime_taken(file_path: str) -> Union[str, None]:
     try:
         with Image.open(file_path) as img:
             exif_data = img._getexif()
@@ -67,7 +68,7 @@ def get_datetime_taken(file_path):
     # 撮影日時が取得できなかった場合はファイル名の昇順でソート
     return os.path.basename(file_path)
 
-def is_horizontal_image(image_path):
+def is_horizontal_image(image_path: str) -> bool:
     try:
         with Image.open(image_path) as img:
             width, height = img.size
@@ -75,7 +76,7 @@ def is_horizontal_image(image_path):
     except (OSError, FileNotFoundError):
         return False
     
-def get_photo_list(input_dir):
+def get_photo_list(input_dir: str) -> List[str]:
     # フォルダ内の写真のパスをリストとして取得
     photo_list = []
     for file_name in os.listdir(input_dir):
@@ -87,7 +88,7 @@ def get_photo_list(input_dir):
     photo_list = [photo_path for photo_path in photo_list if is_horizontal_image(photo_path)]
     return photo_list
 
-def crop_image_with_aspect_ratio(image_path, aspect_ratio, output_path):
+def crop_image_with_aspect_ratio(image_path: str, aspect_ratio: float, output_path: str) -> None:
     # 画像を開く
     image = Image.open(image_path)
 
@@ -111,9 +112,9 @@ def crop_image_with_aspect_ratio(image_path, aspect_ratio, output_path):
     # トリミングされた画像を保存
     image.save(output_path)
 
-def add_photos_to_slide_grid(slide, slide_width, slide_height, rows, columns, photo_list, crop_aspect_ratio, 
-                             margin_outer_top=0.05, margin_outer_bottom=0.05, margin_outer_left=0.05, margin_outer_right=0.05, 
-                             margin_inner_top=0.05, margin_inner_bottom=0.05, margin_inner_left=0.05, margin_inner_right=0.05):
+def add_photos_to_slide_grid(slide, slide_width: int, slide_height: int, rows: int, columns: int, photo_list: List[str], crop_aspect_ratio: float, 
+                             margin_outer_top: float=0.05, margin_outer_bottom: float=0.05, margin_outer_left: float=0.05, margin_outer_right: float=0.05, 
+                             margin_inner_top: float=0.05, margin_inner_bottom: float=0.05, margin_inner_left: float=0.05, margin_inner_right: float=0.05):
     # 外側マージンを計算
     outer_margin_top = slide_height * margin_outer_top
     outer_margin_bottom = slide_height * margin_outer_bottom
@@ -158,7 +159,7 @@ def add_photos_to_slide_grid(slide, slide_width, slide_height, rows, columns, ph
             # 一時的なファイルを削除
             os.remove(output_path)
 
-def parse_aspect_ratio(value):
+def parse_aspect_ratio(value: str) -> float:
     match = re.match(r"(\d+):(\d+)", value)
     if match:
         numerator = int(match.group(1))
