@@ -9,6 +9,25 @@
 pip install -r requirements.txt
 ```
 
+- HEICフォーマットの画像を処理する場合、追加でlibheifとlibexiv2が必要となります。これらのライブラリはシステムレベルでインストールする必要があります。
+
+  - Ubuntuの場合：
+    ```
+    sudo apt-get install libheif-dev libexiv2-dev
+    ```
+  - macOSの場合（Homebrewを使用）：
+    ```
+    brew install libheif
+    brew install exiv2
+    ```
+  また、HEICフォーマットの画像を処理する場合は、Pythonのパッケージpyheifとpyexiv2も必要になります。これらは以下のコマンドでインストールできます。
+  
+  ```
+  pip install pyheif pyexiv2
+  ```
+
+  これらのライブラリとパッケージはHEICフォーマットの画像からExifデータを読み込むために必要です。HEIC以外の画像フォーマットを扱う場合は、これらのインストールは不要です。
+
 # 使い方
 
 ```sh
