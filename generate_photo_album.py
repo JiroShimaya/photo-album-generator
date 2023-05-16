@@ -7,7 +7,7 @@ from typing import List, Union
 from pptx import Presentation
 from pptx.util import Inches
 from PIL import Image
-
+import mimetypes
 
 def generate_photo_album(input_dir: str, rows: int = 2, columns: int = 3, num_pages: int = 5, crop_aspect_ratio: float = 1.0, output_file: str = "photo_album.pptx") -> None:
     # パワーポイントのプレゼンテーションを作成
@@ -55,15 +55,34 @@ def sort_photos_by_datetime(file_paths: List[str]) -> List[str]:
 
     return sorted_file_paths
 
+
 def get_datetime_taken(file_path: str) -> Union[str, None]:
-    try:
-        with Image.open(file_path) as img:
-            exif_data = img._getexif()
-            datetime_taken = exif_data.get(36867)  # Exifタグのキー(36867)は撮影日時を表す
+    _, ext = os.path.splitext(file_path)
+    ext = ext.lower()
+    mime_type, _ = mimetypes.guess_type(file_path)
+
+    if ext in ['.jpg', '.jpeg', '.tiff', '.tif']:
+        try:
+            with Image.open(file_path) as img:
+                exif_data = img._getexif()
+                datetime_taken = exif_data.get(36867)  # Exifタグのキー(36867)は撮影日時を表す
+                if datetime_taken:
+                    return datetime_taken
+        except (AttributeError, KeyError, IndexError):
+            pass
+    #elif ext == '.heic':
+    elif mime_type == 'image/heif':
+        try:
+            import pyheif
+            import pyexiv2
+            heif_file = pyheif.read(file_path)
+            metadata = pyexiv2.ImageMetadata.from_buffer(heif_file.metadata['Exif'])
+            metadata.read()
+            datetime_taken = metadata['Exif.Photo.DateTimeOriginal'].value
             if datetime_taken:
-                return datetime_taken
-    except (AttributeError, KeyError, IndexError):
-        pass
+                return datetime_taken.isoformat(' ')
+        except (AttributeError, KeyError, IndexError):
+            pass
 
     # 撮影日時が取得できなかった場合はファイル名の昇順でソート
     return os.path.basename(file_path)
@@ -80,7 +99,9 @@ def get_photo_list(input_dir: str) -> List[str]:
     # フォルダ内の写真のパスをリストとして取得
     photo_list = []
     for file_name in os.listdir(input_dir):
-        if file_name.endswith(".jpg") or file_name.endswith(".jpeg") or file_name.endswith(".png"):
+        # 画像の拡張子のみを選択
+        if re.search(r"\.(jpg|jpeg|png|tiff|tif|heic)$", file_name, re.IGNORECASE):
+        #if file_name.endswith(".jpg") or file_name.endswith(".jpeg") or file_name.endswith(".png"):
             photo_list.append(os.path.join(input_dir, file_name))
     # 撮影日の昇順に写真をソート
     photo_list = sort_photos_by_datetime(photo_list)
