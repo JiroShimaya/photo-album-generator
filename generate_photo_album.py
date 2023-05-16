@@ -70,7 +70,7 @@ def get_datetime_taken(file_path: str) -> Union[str, None]:
                     return datetime_taken
         except (AttributeError, KeyError, IndexError):
             pass
-    #elif ext == '.heic':
+        
     elif mime_type == 'image/heif':
         try:
             import pyheif
